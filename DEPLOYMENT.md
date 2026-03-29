@@ -73,8 +73,8 @@ In your Render service → **Environment** tab, add:
 | `CLOUDINARY_CLOUD_NAME` | `dnclehvkq` |
 | `CLOUDINARY_API_KEY` | `178899632696332` |
 | `CLOUDINARY_API_SECRET` | `p-aXN2Vp29EUVGvEjxkq8vMeYKs` |
-| `RAZORPAY_KEY_ID` | `rzp_test_SW7tbIphkVM9dQ` |
-| `RAZORPAY_KEY_SECRET` | `kxu0V452GFwdUMbBSHZLvYqY` |
+| `RAZORPAY_KEY_ID` | `rzp_test_SGgUxNXJPhFnL7` |
+| `RAZORPAY_KEY_SECRET` | `gOf4SoUh0IiNkCRlzgXWlx4c` |
 | `FRONTEND_URL` | *(your Vercel URL — add after Step 3)* |
 | `EMAIL_USER` | *(your Gmail — optional for password reset)* |
 | `EMAIL_PASS` | *(your Gmail App Password — optional)* |
@@ -104,7 +104,7 @@ baseURL: "https://shopease-backend.onrender.com/api"
 ```
 
 Also update Razorpay key in checkout if hardcoded:
-- Search for `rzp_test_SW7tbIphkVM9dQ` and ensure it points to your key.
+- Search for `rzp_test_SGgUxNXJPhFnL7` and ensure it points to your key.
 
 Commit and push these changes:
 ```bash

@@ -30,7 +30,7 @@ npm run dev          # starts on http://localhost:5173
 ## ⚙️ Environment Variables (`.env`)
 
 ```env
-VITE_RAZORPAY_KEY_ID=rzp_test_SW7tbIphkVM9dQ
+VITE_RAZORPAY_KEY_ID=rzp_test_SGgUxNXJPhFnL7
 ```
 
 ---
