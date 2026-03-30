@@ -1,11 +1,21 @@
 import axios from "axios";
 
-// Routing strategy:
-// - Local dev  → Vite proxy in vite.config.js: /api → http://localhost:5001/api
-// - Production → vercel.json rewrite:          /api → https://shopease-1-opkc.onrender.com/api
-// VITE_API_URL is kept as an optional override (e.g. staging environments)
+// ALWAYS use a relative /api base URL — never an absolute URL.
+//
+// Why? Vite env vars (VITE_*) are baked into the JS bundle at build time.
+// If VITE_API_URL=http://localhost:5001 is set anywhere (local .env OR
+// Vercel dashboard), it becomes a hardcoded string in production JS,
+// causing Mixed Content errors (HTTP on an HTTPS page) and
+// ERR_CONNECTION_REFUSED (localhost doesn't exist on Vercel's servers).
+//
+// Routing is handled transparently at the infrastructure layer:
+//   Local dev  → vite.config.js proxy:  /api  →  http://localhost:5001/api
+//   Production → vercel.json rewrite:   /api  →  https://shopease-1-opkc.onrender.com/api
+//
+// No env vars needed. No localhost strings in the bundle. No mixed content.
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api",
+  baseURL: "/api",
 });
 
 api.interceptors.request.use((config) => {
