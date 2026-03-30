@@ -16,33 +16,79 @@ export default function Checkout() {
   const items = cart.items || [];
 
   const handlePay = async () => {
+    // ── Guard 1: Address ────────────────────────────────────────────────
     if (!address.street || !address.city || !address.state || !address.zip) {
       toast.error("Please fill all address fields");
       return;
     }
+
+    // ── Guard 2: Cart total must be > 0 ────────────────────────────────
+    if (!cartTotal || cartTotal <= 0) {
+      toast.error("Your cart total is ₹0. Please add valid items and try again.");
+      return;
+    }
+
+    // ── Guard 3: Razorpay SDK must be loaded ────────────────────────────
+    if (!window.Razorpay) {
+      toast.error("Payment gateway not loaded. Please refresh the page and try again.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // Fetch the publishable key from the backend so no env var is needed in Vercel
-      const { data: keyData } = await api.get("/payment/razorpay-key");
-      const razorpayKey = keyData.key;
-      if (!razorpayKey) throw new Error("Payment configuration missing. Please contact support.");
+      // ── Step 1: Fetch publishable key from backend ───────────────────
+      let razorpayKey;
+      try {
+        const { data: keyData } = await api.get("/payment/razorpay-key");
+        razorpayKey = keyData?.key;
+      } catch {
+        toast.error("Could not fetch payment configuration. Please try again.");
+        setLoading(false);
+        return;
+      }
+      if (!razorpayKey) {
+        toast.error("Payment configuration missing. Please contact support.");
+        setLoading(false);
+        return;
+      }
 
-      const { data: rzOrder } = await api.post("/payment/create-order", { amount: cartTotal });
+      // ── Step 2: Create Razorpay order on backend ─────────────────────
+      let rzOrder;
+      try {
+        const { data } = await api.post("/payment/create-order", { amount: cartTotal });
+        rzOrder = data;
+      } catch (err) {
+        const msg = err.response?.data?.message || "Failed to create payment order.";
+        toast.error(msg);
+        setLoading(false);
+        return;
+      }
 
+      // ── Guard 4: Validate order response ─────────────────────────────
+      if (!rzOrder?.id || !rzOrder?.amount) {
+        console.error("Invalid Razorpay order response:", rzOrder);
+        toast.error("Payment order returned invalid data. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // ── Step 3: Open Razorpay checkout ───────────────────────────────
       const options = {
         key: razorpayKey,
         amount: rzOrder.amount,
-        currency: "INR",
+        currency: rzOrder.currency || "INR",
         name: "ShopEase",
         description: "Order Payment",
         order_id: rzOrder.id,
         handler: async (response) => {
           try {
+            // Verify payment signature
             await api.post("/payment/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
             });
+            // Create order in DB
             await api.post("/orders", {
               shippingAddress: address,
               paymentId: response.razorpay_payment_id,
@@ -51,21 +97,36 @@ export default function Checkout() {
             await clearCart();
             toast.success("Order placed successfully! 🎉");
             navigate("/orders");
-          } catch {
-            toast.error("Payment verification failed");
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Payment verification failed. Contact support.");
           }
         },
-        prefill: { name: user?.name, email: user?.email },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
         theme: { color: "#131921" },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+            toast("Payment cancelled", { icon: "ℹ️" });
+          },
+        },
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", () => toast.error("Payment failed"));
+      rzp.on("payment.failed", (resp) => {
+        console.error("Razorpay payment failed:", resp.error);
+        toast.error(resp.error?.description || "Payment failed. Please try again.");
+        setLoading(false);
+      });
       rzp.open();
+
     } catch (err) {
-      toast.error(err.response?.data?.message || "Payment error");
+      console.error("Payment error:", err);
+      toast.error(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (items.length === 0) {
