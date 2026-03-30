@@ -19,7 +19,7 @@ export default function AdminProducts() {
 
   const fetchProducts = () => {
     setLoading(true);
-    api.get("/admin/products").then((res) => setProducts(res.data)).finally(() => setLoading(false));
+    api.get("/admin/products").then((res) => setProducts(Array.isArray(res.data) ? res.data : [])).finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchProducts(); }, []);

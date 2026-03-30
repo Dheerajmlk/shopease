@@ -22,7 +22,7 @@ export default function Orders() {
 
   useEffect(() => {
     api.get("/orders")
-      .then((res) => setOrders(res.data))
+      .then((res) => setOrders(Array.isArray(res.data) ? res.data : res.data?.orders || []))
       .catch((err) => {
         toast.error(err.response?.data?.message || "Error fetching orders");
         setOrders([]);

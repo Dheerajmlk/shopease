@@ -13,7 +13,7 @@ export default function SectionRow({ title, products, link, linkText = "See all 
     }
   };
 
-  if (!products || products.length === 0) return null;
+  if (!Array.isArray(products) || products.length === 0) return null;
 
   return (
     <div style={{

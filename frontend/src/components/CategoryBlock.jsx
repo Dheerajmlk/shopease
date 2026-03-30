@@ -4,7 +4,7 @@ import { useLang } from "../context/LanguageContext";
 export default function CategoryBlock({ category, products }) {
   const { t } = useLang();
 
-  if (!products || products.length === 0) return null;
+  if (!Array.isArray(products) || products.length === 0) return null;
 
   return (
     <div style={{

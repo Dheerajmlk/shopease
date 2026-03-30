@@ -30,13 +30,14 @@ export default function Home() {
       api.get("/products/category-blocks"),
     ])
       .then(([f, b, d60, d35, d30, cb]) => {
-        setFeatured(f.data);
-        setBestSellers(b.data);
-        setDeals60(d60.data);
-        setDeals35(d35.data);
-        setDeals30(d30.data);
-        setCategoryBlocks(cb.data);
+        setFeatured(Array.isArray(f.data) ? f.data : []);
+        setBestSellers(Array.isArray(b.data) ? b.data : []);
+        setDeals60(Array.isArray(d60.data) ? d60.data : []);
+        setDeals35(Array.isArray(d35.data) ? d35.data : []);
+        setDeals30(Array.isArray(d30.data) ? d30.data : []);
+        setCategoryBlocks(Array.isArray(cb.data) ? cb.data : []);
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
