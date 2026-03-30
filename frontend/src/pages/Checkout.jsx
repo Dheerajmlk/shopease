@@ -6,6 +6,29 @@ import api from "../api";
 import toast from "react-hot-toast";
 import { FiLock, FiShield } from "react-icons/fi";
 
+// Dynamically inject the Razorpay script and wait until window.Razorpay is ready.
+// This is more reliable than <script defer> which can race with React mounting.
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);          // already loaded
+
+    const existing = document.getElementById("razorpay-sdk");
+    if (existing) {
+      // Script tag exists but window.Razorpay not yet set — wait for it
+      existing.addEventListener("load", () => resolve(!!window.Razorpay));
+      existing.addEventListener("error", () => resolve(false));
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "razorpay-sdk";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload  = () => resolve(!!window.Razorpay);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -15,128 +38,132 @@ export default function Checkout() {
 
   const items = cart.items || [];
 
-  // Must be in useEffect — calling navigate() during render causes React warning
+  // Navigate inside useEffect to avoid React render-cycle warning
   useEffect(() => {
-    if (items.length === 0) {
-      navigate("/cart");
-    }
+    if (items.length === 0) navigate("/cart");
   }, [items.length, navigate]);
 
   const handlePay = async () => {
-    // ── Guard 1: Address ────────────────────────────────────────────────
+    // ── Guard: address ────────────────────────────────────────────────
     if (!address.street || !address.city || !address.state || !address.zip) {
       toast.error("Please fill all address fields");
       return;
     }
 
-    // ── Guard 2: Cart total must be > 0 ────────────────────────────────
+    // ── Guard: cart total ─────────────────────────────────────────────
     if (!cartTotal || cartTotal <= 0) {
-      toast.error("Your cart total is ₹0. Please add valid items and try again.");
-      return;
-    }
-
-    // ── Guard 3: Razorpay SDK must be loaded ────────────────────────────
-    if (!window.Razorpay) {
-      toast.error("Payment gateway not loaded. Please refresh the page and try again.");
+      toast.error("Cart total is ₹0 — please add items and try again.");
       return;
     }
 
     setLoading(true);
+
+    // ── Step 1: Load Razorpay SDK on demand ───────────────────────────
+    const sdkReady = await loadRazorpayScript();
+    if (!sdkReady) {
+      toast.error("Could not load payment gateway. Check your internet and try again.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // ── Step 1: Fetch publishable key from backend ───────────────────
-      let razorpayKey;
-      try {
-        const { data: keyData } = await api.get("/payment/razorpay-key");
-        razorpayKey = keyData?.key;
-      } catch {
-        toast.error("Could not fetch payment configuration. Please try again.");
-        setLoading(false);
-        return;
-      }
+      // ── Step 2: Get publishable key from backend ──────────────────────
+      const { data: keyData } = await api.get("/payment/razorpay-key");
+      const razorpayKey = keyData?.key;
       if (!razorpayKey) {
-        toast.error("Payment configuration missing. Please contact support.");
+        toast.error("Payment key missing. Please contact support.");
         setLoading(false);
         return;
       }
 
-      // ── Step 2: Create Razorpay order on backend ─────────────────────
-      let rzOrder;
-      try {
-        const { data } = await api.post("/payment/create-order", { amount: cartTotal });
-        rzOrder = data;
-      } catch (err) {
-        const msg = err.response?.data?.message || "Failed to create payment order.";
-        toast.error(msg);
-        setLoading(false);
-        return;
-      }
-
-      // ── Guard 4: Validate order response ─────────────────────────────
+      // ── Step 3: Create Razorpay order on backend ──────────────────────
+      const { data: rzOrder } = await api.post("/payment/create-order", { amount: cartTotal });
       if (!rzOrder?.id || !rzOrder?.amount) {
-        console.error("Invalid Razorpay order response:", rzOrder);
-        toast.error("Payment order returned invalid data. Please try again.");
+        toast.error("Could not create payment order. Please try again.");
         setLoading(false);
         return;
       }
 
-      // ── Step 3: Open Razorpay checkout ───────────────────────────────
+      // ── Step 4: Open Razorpay modal ───────────────────────────────────
       const options = {
-        key: razorpayKey,
-        amount: rzOrder.amount,
-        currency: rzOrder.currency || "INR",
-        name: "ShopEase",
+        key:         razorpayKey,
+        amount:      rzOrder.amount,
+        currency:    rzOrder.currency || "INR",
+        name:        "ShopEase",
         description: "Order Payment",
-        order_id: rzOrder.id,
+        order_id:    rzOrder.id,
+
+        // Called when Razorpay reports payment as successful
         handler: async (response) => {
+          const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
+
           try {
-            // Verify payment signature
+            // ── Verify signature ─────────────────────────────────────
             await api.post("/payment/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
             });
-            // Create order in DB
+
+            // ── Create order in DB ────────────────────────────────────
             await api.post("/orders", {
-              shippingAddress: address,
-              paymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
+              shippingAddress:  address,
+              paymentId:        razorpay_payment_id,
+              razorpayOrderId:  razorpay_order_id,
             });
+
             await clearCart();
             toast.success("Order placed successfully! 🎉");
             navigate("/orders");
+
           } catch (err) {
-            toast.error(err.response?.data?.message || "Payment verification failed. Contact support.");
+            const serverMsg = err.response?.data?.message;
+
+            if (err.response?.status === 400 && serverMsg?.includes("verification")) {
+              // Signature mismatch — payment went through on Razorpay but our key is wrong
+              toast.error(
+                `Payment received (ID: ${razorpay_payment_id}) but verification failed. ` +
+                `Please contact support with this ID.`
+              );
+            } else if (err.response?.status === 400 && serverMsg?.includes("Cart")) {
+              toast.error("Cart issue after payment. Contact support with payment ID: " + razorpay_payment_id);
+            } else {
+              toast.error(serverMsg || "Something went wrong after payment. Contact support.");
+            }
+            setLoading(false);
           }
         },
-        prefill: {
-          name: user?.name || "",
-          email: user?.email || "",
-        },
-        theme: { color: "#131921" },
+
+        prefill: { name: user?.name || "", email: user?.email || "" },
+        theme:   { color: "#131921" },
+
         modal: {
           ondismiss: () => {
             setLoading(false);
-            toast("Payment cancelled", { icon: "ℹ️" });
+            toast("Payment cancelled.", { icon: "ℹ️" });
           },
         },
       };
 
       const rzp = new window.Razorpay(options);
+
       rzp.on("payment.failed", (resp) => {
-        console.error("Razorpay payment failed:", resp.error);
-        toast.error(resp.error?.description || "Payment failed. Please try again.");
+        const e = resp.error;
+        console.error("Razorpay payment.failed →", e);
+        toast.error(e?.description || e?.reason || "Payment failed — please try a different method.");
         setLoading(false);
       });
+
       rzp.open();
 
     } catch (err) {
-      console.error("Payment error:", err);
-      toast.error(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      // Network / server error before Razorpay modal even opened
+      const msg = err.response?.data?.message || err.message || "Unexpected error. Please try again.";
+      toast.error(msg);
       setLoading(false);
     }
   };
 
-  // Render nothing while redirecting to cart
   if (items.length === 0) return null;
 
   return (
@@ -144,7 +171,9 @@ export default function Checkout() {
       {/* Header */}
       <div className="bg-gradient-to-b from-[#f0f2f2] to-[#e3e6e6] border-b border-[#bbb] py-3">
         <div className="max-w-[1000px] mx-auto px-4 flex items-center justify-between">
-          <h1 className="text-2xl font-medium text-[#0f1111]">Checkout (<span className="text-[#007185]">{items.reduce((s, i) => s + i.quantity, 0)} items</span>)</h1>
+          <h1 className="text-2xl font-medium text-[#0f1111]">
+            Checkout (<span className="text-[#007185]">{items.reduce((s, i) => s + i.quantity, 0)} items</span>)
+          </h1>
           <div className="flex items-center gap-1 text-[#565959] text-sm">
             <FiLock size={14} />
             <span>Secure checkout</span>
@@ -154,7 +183,7 @@ export default function Checkout() {
 
       <div className="max-w-[1000px] mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left - Address & Items */}
+          {/* Left — Address & Items */}
           <div className="flex-1 space-y-4">
             {/* Shipping Address */}
             <div className="bg-white rounded-sm shadow-sm p-5">
@@ -187,27 +216,27 @@ export default function Checkout() {
               <div className="divide-y divide-[#e7e7e7]">
                 {items.map((item) => (
                   <div key={item.product?._id} className="flex gap-3 py-3">
-                    <img src={item.product?.image} alt={item.product?.name} className="w-16 h-16 object-contain bg-[#f7f7f7] rounded p-1" />
+                    <img src={item.product?.image} alt={item.product?.name}
+                      className="w-16 h-16 object-contain bg-[#f7f7f7] rounded p-1" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-[#0f1111] line-clamp-1">{item.product?.name}</p>
                       <p className="text-sm font-bold text-[#0f1111]">₹{item.product?.price?.toLocaleString()}</p>
                       <p className="text-xs text-[#565959]">Qty: {item.quantity}</p>
                     </div>
-                    <p className="text-sm font-bold text-[#0f1111] shrink-0">₹{(item.product?.price * item.quantity)?.toLocaleString()}</p>
+                    <p className="text-sm font-bold text-[#0f1111] shrink-0">
+                      ₹{(item.product?.price * item.quantity)?.toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Right - Order Summary */}
+          {/* Right — Order Summary */}
           <div className="w-full lg:w-[300px] shrink-0">
             <div className="bg-white rounded-sm shadow-sm p-5 sticky top-[100px]">
-              <button
-                onClick={handlePay}
-                disabled={loading}
-                className="w-full bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] py-2.5 rounded-full font-medium text-sm mb-4 disabled:opacity-50 border border-[#fcd200] shadow-sm"
-              >
+              <button onClick={handlePay} disabled={loading}
+                className="w-full bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] py-2.5 rounded-full font-medium text-sm mb-4 disabled:opacity-50 border border-[#fcd200] shadow-sm">
                 {loading ? "Processing..." : "Place your order"}
               </button>
 
@@ -230,6 +259,13 @@ export default function Checkout() {
               <div className="flex justify-between items-center border-t border-[#e7e7e7] mt-3 pt-3">
                 <span className="text-lg font-bold text-[#cc0c39]">Order Total:</span>
                 <span className="text-lg font-bold text-[#cc0c39]">₹{cartTotal.toLocaleString()}</span>
+              </div>
+
+              <div className="mt-3 p-3 bg-[#f0f9ff] rounded text-xs text-[#565959] border border-[#bde0f5]">
+                <p className="font-bold text-[#0f1111] mb-1">🧪 Test Payment Details</p>
+                <p>Card: <span className="font-mono font-bold">4111 1111 1111 1111</span></p>
+                <p>Expiry: <span className="font-mono">12/26</span> &nbsp; CVV: <span className="font-mono">123</span></p>
+                <p>OTP: <span className="font-mono font-bold">1234</span></p>
               </div>
 
               <div className="flex items-center gap-1 text-xs text-[#565959] mt-3">

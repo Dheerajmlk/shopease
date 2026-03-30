@@ -25,7 +25,13 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
-    const items = cart.items.map((item) => ({
+    // Filter out any cart items whose product was deleted from DB (populate returns null)
+    const validItems = cart.items.filter((item) => item.product != null);
+    if (validItems.length === 0) {
+      return res.status(400).json({ message: "Cart contains no valid items — some products may have been removed." });
+    }
+
+    const items = validItems.map((item) => ({
       product: item.product._id,
       name: item.product.name,
       image: item.product.image,

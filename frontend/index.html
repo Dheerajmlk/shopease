@@ -22,12 +22,7 @@
       rel="stylesheet"
     />
 
-    <!--
-      Razorpay checkout SDK.
-      • defer  → non-blocking, loads after HTML parse (fixes preload warning)
-      • window.Razorpay is available before user can click Pay (UI renders first)
-    -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <!-- Razorpay loaded on-demand in Checkout.jsx via loadRazorpay() -->
   </head>
   <body>
     <div id="root"></div>
