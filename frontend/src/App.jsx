@@ -16,6 +16,8 @@ import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
+import Returns from "./pages/Returns";
+import Address from "./pages/Address";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -45,6 +47,8 @@ export default function App() {
                 <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                <Route path="/returns" element={<ProtectedRoute><Returns /></ProtectedRoute>} />
+                <Route path="/address" element={<ProtectedRoute><Address /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
                   <Route index element={<Dashboard />} />
                   <Route path="products" element={<AdminProducts />} />

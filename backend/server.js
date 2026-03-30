@@ -10,6 +10,7 @@ const wishlistRoutes = require("./routes/wishlist");
 const orderRoutes = require("./routes/orders");
 const adminRoutes = require("./routes/admin");
 const paymentRoutes = require("./routes/payment");
+const userRoutes = require("./routes/user");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/user", userRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "E-Commerce API is running" });

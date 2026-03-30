@@ -64,17 +64,17 @@ export default function Navbar() {
               <span style={{ color: "#f08804", fontSize: 10, marginTop: -8, marginLeft: 2 }}>.in</span>
             </Link>
 
-            {/* Delivery Location */}
-            <div style={{ display: "none", alignItems: "center", color: "#fff", padding: "4px 8px", border: "1px solid transparent", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}
+            {/* Delivery Location → /address */}
+            <Link to="/address" style={{ display: "none", alignItems: "center", color: "#fff", padding: "4px 8px", border: "1px solid transparent", borderRadius: 4, cursor: "pointer", flexShrink: 0, textDecoration: "none" }}
               className="lg:!flex"
               onMouseEnter={(e) => e.currentTarget.style.borderColor = "#fff"}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = "transparent"}>
-              <FiMapPin style={{ color: "#fff", marginRight: 4 }} size={18} />
+              <FiMapPin style={{ color: "#f08804", marginRight: 4 }} size={18} />
               <div style={{ lineHeight: 1.3 }}>
                 <p style={{ color: "#ccc", fontSize: 11, margin: 0 }}>{t("deliverTo")}</p>
                 <p style={{ color: "#fff", fontSize: 14, fontWeight: 700, margin: 0 }}>{t("india")}</p>
               </div>
-            </div>
+            </Link>
 
             {/* Search Bar */}
             <form onSubmit={handleSearch} style={{ flex: 1, display: "flex", height: 42, minWidth: 0, borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
@@ -157,6 +157,16 @@ export default function Navbar() {
                         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
                         {t("wishlist")}
                       </Link>
+                      <Link to="/address" style={{ display: "block", padding: "10px 12px", fontSize: 14, color: "#0f1111", textDecoration: "none", borderRadius: 4 }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                        My Addresses
+                      </Link>
+                      <Link to="/returns" style={{ display: "block", padding: "10px 12px", fontSize: 14, color: "#0f1111", textDecoration: "none", borderRadius: 4 }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                        Returns
+                      </Link>
                       {user.role === "admin" && (
                         <Link to="/admin" style={{ display: "block", padding: "10px 12px", fontSize: 14, color: "#0f1111", textDecoration: "none", borderRadius: 4 }}
                           onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
@@ -225,6 +235,8 @@ export default function Navbar() {
                   <p style={{ color: "#ccc", fontSize: 14, padding: "4px 8px", margin: 0 }}>{t("hello")}, {user.name}</p>
                   <Link to="/orders" style={{ color: "#fff", padding: "8px 8px", textDecoration: "none", borderRadius: 4, fontSize: 14 }} onClick={() => setMenuOpen(false)}>{t("myOrders")}</Link>
                   <Link to="/wishlist" style={{ color: "#fff", padding: "8px 8px", textDecoration: "none", borderRadius: 4, fontSize: 14 }} onClick={() => setMenuOpen(false)}>{t("wishlist")}</Link>
+                  <Link to="/address" style={{ color: "#fff", padding: "8px 8px", textDecoration: "none", borderRadius: 4, fontSize: 14 }} onClick={() => setMenuOpen(false)}>My Addresses</Link>
+                  <Link to="/returns" style={{ color: "#fff", padding: "8px 8px", textDecoration: "none", borderRadius: 4, fontSize: 14 }} onClick={() => setMenuOpen(false)}>Returns</Link>
                   {user.role === "admin" && <Link to="/admin" style={{ color: "#fff", padding: "8px 8px", textDecoration: "none", borderRadius: 4, fontSize: 14 }} onClick={() => setMenuOpen(false)}>{t("adminPanel")}</Link>}
                   <button onClick={() => { handleLogout(); setMenuOpen(false); }} style={{ textAlign: "left", color: "#ff9900", padding: "8px 8px", background: "transparent", border: "none", cursor: "pointer", borderRadius: 4, fontSize: 14 }}>{t("signOut")}</button>
                 </>

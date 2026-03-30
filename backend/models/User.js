@@ -13,6 +13,16 @@ const userSchema = new mongoose.Schema(
       state: { type: String, default: "" },
       zip: { type: String, default: "" },
     },
+    addresses: [
+      {
+        label: { type: String, default: "Home" },
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        zip: { type: String, required: true },
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpiry: { type: Date, default: null },
   },
