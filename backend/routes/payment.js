@@ -5,6 +5,11 @@ const { auth } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Public endpoint — returns only the publishable key (safe to expose)
+router.get("/razorpay-key", (req, res) => {
+  res.json({ key: process.env.RAZORPAY_KEY_ID });
+});
+
 router.post("/create-order", auth, async (req, res) => {
   try {
     const { amount } = req.body;

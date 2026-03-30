@@ -22,10 +22,15 @@ export default function Checkout() {
     }
     setLoading(true);
     try {
+      // Fetch the publishable key from the backend so no env var is needed in Vercel
+      const { data: keyData } = await api.get("/payment/razorpay-key");
+      const razorpayKey = keyData.key;
+      if (!razorpayKey) throw new Error("Payment configuration missing. Please contact support.");
+
       const { data: rzOrder } = await api.post("/payment/create-order", { amount: cartTotal });
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: rzOrder.amount,
         currency: "INR",
         name: "ShopEase",
