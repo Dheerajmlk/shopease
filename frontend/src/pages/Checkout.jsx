@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +14,13 @@ export default function Checkout() {
   const [address, setAddress] = useState({ street: "", city: "", state: "", zip: "" });
 
   const items = cart.items || [];
+
+  // Must be in useEffect — calling navigate() during render causes React warning
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate("/cart");
+    }
+  }, [items.length, navigate]);
 
   const handlePay = async () => {
     // ── Guard 1: Address ────────────────────────────────────────────────
@@ -129,10 +136,8 @@ export default function Checkout() {
     }
   };
 
-  if (items.length === 0) {
-    navigate("/cart");
-    return null;
-  }
+  // Render nothing while redirecting to cart
+  if (items.length === 0) return null;
 
   return (
     <div className="bg-[#e3e6e6] min-h-screen">

@@ -1,0 +1,17 @@
+{
+  "name": "ShopEase",
+  "short_name": "ShopEase",
+  "description": "Your one-stop online shopping destination",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#131921",
+  "theme_color": "#131921",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}
