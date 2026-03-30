@@ -1,7 +1,9 @@
 import axios from "axios";
 
-// In dev: Vite proxy handles /api → http://localhost:5001/api
-// In prod: set VITE_API_URL=https://your-backend.onrender.com in Vercel env vars
+// Routing strategy:
+// - Local dev  → Vite proxy in vite.config.js: /api → http://localhost:5001/api
+// - Production → vercel.json rewrite:          /api → https://shopease-1-opkc.onrender.com/api
+// VITE_API_URL is kept as an optional override (e.g. staging environments)
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api",
 });
