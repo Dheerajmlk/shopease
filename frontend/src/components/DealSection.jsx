@@ -28,11 +28,11 @@ export default function DealSection({ title, products }) {
               background: "#f7f7f7",
               borderRadius: 8,
               overflow: "hidden",
-              height: 160,
+              height: 150,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 16,
+              padding: 10,
               border: "1px solid #f0f0f0",
               transition: "border-color 0.2s, transform 0.2s"
             }}
@@ -44,7 +44,7 @@ export default function DealSection({ title, products }) {
                 alt={p.name}
                 loading="lazy"
                 onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
-                style={{ width: "auto", height: "auto", maxHeight: "85%", maxWidth: "85%", objectFit: "contain", display: "block" }}
+                style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
               />
               <span style={{
                 position: "absolute", top: 8, left: 8,
@@ -56,11 +56,11 @@ export default function DealSection({ title, products }) {
                 {p.discount}% {t("off")}
               </span>
             </div>
-            <div style={{ marginTop: 10 }}>
-              <p style={{ fontSize: 13, color: "#0f1111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0, fontWeight: 500 }}>{p.name}</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#0f1111" }}>₹{p.price?.toLocaleString()}</span>
-                <span style={{ fontSize: 12, color: "#565959", textDecoration: "line-through" }}>₹{p.originalPrice?.toLocaleString()}</span>
+            <div style={{ marginTop: 6 }}>
+              <p style={{ fontSize: 12, color: "#0f1111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0, fontWeight: 500 }}>{p.name}</p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 3 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f1111" }}>₹{p.price?.toLocaleString()}</span>
+                <span style={{ fontSize: 11, color: "#565959", textDecoration: "line-through" }}>₹{p.originalPrice?.toLocaleString()}</span>
               </div>
             </div>
           </Link>

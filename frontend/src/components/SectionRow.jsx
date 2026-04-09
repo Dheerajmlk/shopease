@@ -50,7 +50,7 @@ export default function SectionRow({ title, products, link, linkText = "See all 
           style={{ display: "flex", gap: 10, overflowX: "auto", padding: "6px 16px 16px", scrollSnapType: "x mandatory" }}
         >
           {products.map((p) => (
-            <div key={p._id} style={{ flexShrink: 0, width: "clamp(150px, 40vw, 200px)", scrollSnapAlign: "start" }}>
+            <div key={p._id} style={{ flexShrink: 0, width: "clamp(140px, 38vw, 200px)", scrollSnapAlign: "start" }}>
               <ProductCard product={p} compact />
             </div>
           ))}

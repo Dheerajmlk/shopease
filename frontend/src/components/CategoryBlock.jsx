@@ -29,11 +29,11 @@ export default function CategoryBlock({ category, products }) {
               background: "#f7f7f7",
               borderRadius: 6,
               width: "100%",
-              height: 120,
+              height: 100,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 8,
+              padding: 6,
               overflow: "hidden",
               border: "1px solid #efefef",
               transition: "border-color 0.2s, transform 0.2s",
@@ -48,10 +48,8 @@ export default function CategoryBlock({ category, products }) {
                 loading="lazy"
                 onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
                 style={{
-                  width: "auto",
-                  height: "auto",
-                  maxWidth: "90%",
-                  maxHeight: "90%",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
                   objectFit: "contain",
                   display: "block",
                 }}

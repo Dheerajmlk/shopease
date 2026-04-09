@@ -77,8 +77,6 @@ export default function Carousel() {
                 objectPosition: "center"         // ✅ FIXED
               }}
             />
-            <div style={{ position: "absolute", inset: 0, background: slide.gradient }} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)" }} />
           </div>
 
           {/* Text content */}
