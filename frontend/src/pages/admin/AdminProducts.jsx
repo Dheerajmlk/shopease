@@ -98,23 +98,23 @@ export default function AdminProducts() {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
-        <h1 className="text-2xl font-bold text-[#0f1111]">Products ({products.length})</h1>
-        <div className="flex gap-3 items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#0f1111]">Products ({products.length})</h1>
+        <div className="flex gap-2 items-center w-full sm:w-auto">
           <input
-            type="text" placeholder="Search products..."
+            type="text" placeholder="Search..."
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="text-sm border border-[#888c8c] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#007185] outline-none w-52"
+            className="text-sm border border-[#888c8c] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#007185] outline-none flex-1 sm:w-44"
           />
           <button onClick={openAdd}
-            className="flex items-center gap-2 bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] px-4 py-2 rounded-full text-sm font-medium border border-[#fcd200] shadow-sm whitespace-nowrap">
-            <FiPlus size={16} /> Add Product
+            className="flex items-center gap-1.5 bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] px-3 sm:px-4 py-2 rounded-full text-sm font-medium border border-[#fcd200] shadow-sm whitespace-nowrap">
+            <FiPlus size={16} /> Add
           </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-sm shadow-sm overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-sm shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[#565959] border-b border-[#e7e7e7] bg-[#f0f2f2]">
@@ -132,7 +132,7 @@ export default function AdminProducts() {
             {filtered.map((p) => (
               <tr key={p._id} className="border-b border-[#f0f0f0] hover:bg-[#f7f7f7] transition-colors">
                 <td className="p-3">
-                  <img src={p.image} alt={p.name} className="w-12 h-12 object-contain bg-[#f7f7f7] rounded p-1 border border-[#e0e0e0]" />
+                  <img src={p.image} alt={p.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} className="w-12 h-12 object-contain bg-[#f7f7f7] rounded p-1 border border-[#e0e0e0]" />
                 </td>
                 <td className="p-3 font-medium text-[#0f1111] max-w-[200px]">
                   <span className="block truncate">{p.name}</span>
@@ -175,19 +175,53 @@ export default function AdminProducts() {
         )}
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-2">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-sm shadow-sm p-8 text-center text-[#565959]">No products found</div>
+        ) : (
+          filtered.map((p) => (
+            <div key={p._id} className="bg-white rounded-sm shadow-sm p-3 flex gap-3">
+              <img src={p.image} alt={p.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} className="w-16 h-16 object-contain bg-[#f7f7f7] rounded p-1 border border-[#e0e0e0] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#0f1111] truncate">{p.name}</p>
+                <p className="text-xs text-[#565959]">{p.category}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm font-bold text-[#0f1111]">₹{p.price?.toLocaleString()}</span>
+                  {p.discount > 0 && <span className="text-[10px] bg-[#cc0c39] text-white px-1.5 py-0.5 rounded-sm font-bold">{p.discount}%</span>}
+                  <span className={`text-xs ${p.stock > 0 ? "text-[#007600]" : "text-[#cc0c39]"}`}>Stock: {p.stock}</span>
+                </div>
+                <div className="flex gap-1 mt-1">
+                  {p.isFeatured && <span className="text-[10px] bg-[#232f3e] text-white px-1.5 py-0.5 rounded">Featured</span>}
+                  {p.isBestSeller && <span className="text-[10px] bg-[#f0c14b] text-[#111] px-1.5 py-0.5 rounded font-bold">Best Seller</span>}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 shrink-0">
+                <button onClick={() => openEdit(p)} className="text-[#007185] hover:text-[#c45500] p-1.5 rounded hover:bg-[#f0f0f0]" title="Edit">
+                  <FiEdit2 size={16} />
+                </button>
+                <button onClick={() => handleDelete(p._id)} className="text-[#cc0c39] hover:text-red-700 p-1.5 rounded hover:bg-[#f0f0f0]" title="Delete">
+                  <FiTrash2 size={16} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3">
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[92vh] overflow-y-auto shadow-2xl">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-5 border-b border-[#e7e7e7] sticky top-0 bg-white z-10">
-              <h3 className="text-lg font-bold text-[#0f1111]">{editing ? "✏️ Edit Product" : "➕ Add New Product"}</h3>
+            <div className="flex justify-between items-center p-4 sm:p-5 border-b border-[#e7e7e7] sticky top-0 bg-white z-10">
+              <h3 className="text-base sm:text-lg font-bold text-[#0f1111]">{editing ? "Edit Product" : "Add New Product"}</h3>
               <button onClick={() => setShowModal(false)} className="text-[#565959] hover:text-[#0f1111] p-1 rounded-full hover:bg-[#f0f0f0]">
                 <FiX size={22} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3">
               {/* Name */}
               <div>
                 <label className="block text-sm font-bold text-[#0f1111] mb-1">Product Name *</label>
@@ -205,18 +239,18 @@ export default function AdminProducts() {
               </div>
 
               {/* Price row */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#0f1111] mb-1">Sale Price (₹) *</label>
+                  <label className="block text-xs font-bold text-[#0f1111] mb-1">Sale Price *</label>
                   <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required min="0"
                     className="w-full px-3 py-2 border border-[#888c8c] rounded-lg focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#0f1111] mb-1">MRP (₹)</label>
+                  <label className="block text-xs font-bold text-[#0f1111] mb-1">MRP</label>
                   <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} min="0"
                     className="w-full px-3 py-2 border border-[#888c8c] rounded-lg focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                 </div>
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-xs font-bold text-[#0f1111] mb-1">Discount %</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} min="0" max="100"
                     className="w-full px-3 py-2 border border-[#888c8c] rounded-lg focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
@@ -224,7 +258,7 @@ export default function AdminProducts() {
               </div>
 
               {/* Category + Stock */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div>
                   <label className="block text-sm font-bold text-[#0f1111] mb-1">Category *</label>
                   <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required
@@ -246,13 +280,13 @@ export default function AdminProducts() {
                 <div className="flex rounded-lg overflow-hidden border border-[#d5d9d9] mb-3 w-fit">
                   <button type="button"
                     onClick={() => setImageMode("url")}
-                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors ${imageMode === "url" ? "bg-[#232f3e] text-white" : "bg-white text-[#565959] hover:bg-[#f0f0f0]"}`}>
-                    <FiLink size={14} /> Image URL
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${imageMode === "url" ? "bg-[#232f3e] text-white" : "bg-white text-[#565959] hover:bg-[#f0f0f0]"}`}>
+                    <FiLink size={14} /> URL
                   </button>
                   <button type="button"
                     onClick={() => setImageMode("file")}
-                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors ${imageMode === "file" ? "bg-[#232f3e] text-white" : "bg-white text-[#565959] hover:bg-[#f0f0f0]"}`}>
-                    <FiImage size={14} /> Upload File
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${imageMode === "file" ? "bg-[#232f3e] text-white" : "bg-white text-[#565959] hover:bg-[#f0f0f0]"}`}>
+                    <FiImage size={14} /> Upload
                   </button>
                 </div>
 
@@ -260,29 +294,27 @@ export default function AdminProducts() {
                   <div>
                     <input type="url" value={form.imageUrl}
                       onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                      placeholder="https://images.unsplash.com/photo-... or any direct image link"
+                      placeholder="https://images.unsplash.com/..."
                       className="w-full px-3 py-2 border border-[#888c8c] rounded-lg focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                     {form.imageUrl && (
                       <div className="mt-2 flex items-center gap-3">
-                        <img src={form.imageUrl} alt="preview" className="w-16 h-16 object-contain rounded border border-[#e0e0e0] bg-[#f7f7f7] p-1"
+                        <img src={form.imageUrl} alt="preview" className="w-14 h-14 object-contain rounded border border-[#e0e0e0] bg-[#f7f7f7] p-1"
                           onError={(e) => { e.target.style.display = "none"; }} />
-                        <span className="text-xs text-[#007600]">✓ Image URL set</span>
+                        <span className="text-xs text-[#007600]">Image URL set</span>
                       </div>
                     )}
-                    <p className="text-xs text-[#565959] mt-1.5">💡 Use Unsplash: <a href="https://unsplash.com" target="_blank" rel="noreferrer" className="text-[#007185] underline">unsplash.com</a> → right-click image → Copy image address</p>
                   </div>
                 ) : (
                   <div>
                     <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])}
                       className="w-full text-sm text-[#565959] file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#ffd814] file:text-[#0f1111] file:font-medium hover:file:bg-[#f7ca00] file:cursor-pointer" />
-                    {image && <p className="text-xs text-[#007600] mt-1">✓ {image.name} selected</p>}
-                    <p className="text-xs text-[#cc0c39] mt-1">⚠️ File upload requires valid Cloudinary credentials in backend .env</p>
+                    {image && <p className="text-xs text-[#007600] mt-1">{image.name} selected</p>}
                   </div>
                 )}
               </div>
 
               {/* Checkboxes */}
-              <div className="flex gap-6 py-1">
+              <div className="flex gap-4 py-1">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
                     className="w-4 h-4 rounded border-[#888c8c] accent-[#007185]" />

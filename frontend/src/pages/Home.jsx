@@ -44,15 +44,14 @@ export default function Home() {
   if (loading) {
     return (
       <div style={{ background: "#eaeded", minHeight: "100vh" }}>
-        <div style={{ height: 350, background: "linear-gradient(135deg, #232f3e 0%, #37475a 100%)" }} className="animate-pulse" />
-        <div style={{ maxWidth: 1500, margin: "0 auto", padding: "20px 16px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div style={{ height: "clamp(180px, 40vw, 380px)", background: "linear-gradient(135deg, #232f3e 0%, #37475a 100%)" }} className="animate-pulse" />
+        <div className="max-w-[1500px] mx-auto px-3 sm:px-4 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} style={{ background: "#fff", height: 350, borderRadius: 8 }} className="animate-pulse" />
+              <div key={i} className="bg-white h-[280px] sm:h-[350px] rounded-lg animate-pulse" />
             ))}
           </div>
-          <div style={{ background: "#fff", height: 280, borderRadius: 8, marginTop: 16 }} className="animate-pulse" />
-          <div style={{ background: "#fff", height: 280, borderRadius: 8, marginTop: 16 }} className="animate-pulse" />
+          <div className="bg-white h-[200px] sm:h-[280px] rounded-lg mt-4 animate-pulse" />
         </div>
       </div>
     );
@@ -62,58 +61,47 @@ export default function Home() {
     <div style={{ background: "#eaeded", minHeight: "100vh" }}>
       <Carousel />
 
-      <div style={{ maxWidth: 1500, margin: "0 auto", padding: "20px 16px", paddingBottom: 40 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className="max-w-[1500px] mx-auto px-3 sm:px-4 py-4 sm:py-5 pb-8 sm:pb-10">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* ── LOGGED-IN: Welcome + Quick Actions ── */}
           {user && (
             <div style={{
               background: "linear-gradient(135deg, #232f3e 0%, #37475a 100%)",
               borderRadius: 10,
-              padding: "22px 28px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               flexWrap: "wrap",
-              gap: 16,
+              gap: 12,
               boxShadow: "0 4px 16px rgba(0,0,0,0.18)"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            }} className="p-4 sm:p-5">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: "50%",
+                  width: 44, height: 44, borderRadius: "50%",
                   background: "linear-gradient(135deg, #f08804, #ffd814)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   flexShrink: 0, boxShadow: "0 2px 8px rgba(240,136,4,0.4)"
                 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: "#111" }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: "#111" }}>
                     {user.name?.[0]?.toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <p style={{ color: "#ccc", fontSize: 13, margin: 0 }}>Good day 👋</p>
-                  <h2 style={{ color: "#fff", fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: "-0.3px" }}>
+                  <p className="hidden sm:block" style={{ color: "#ccc", fontSize: 13, margin: 0 }}>Good day</p>
+                  <h2 style={{ color: "#fff", margin: 0, letterSpacing: "-0.3px" }} className="text-base sm:text-xl font-bold">
                     Welcome back, {user.name?.split(" ")[0]}!
                   </h2>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div className="flex gap-2 flex-wrap">
                 {[
-                  { icon: <FiPackage size={16} />, label: "My Orders", to: "/orders" },
-                  { icon: <FiHeart size={16} />, label: "Wishlist", to: "/wishlist" },
-                  { icon: <FiShoppingCart size={16} />, label: "My Cart", to: "/cart" },
-                  { icon: <FiGrid size={16} />, label: "All Products", to: "/products" },
+                  { icon: <FiPackage size={14} />, label: "Orders", to: "/orders" },
+                  { icon: <FiHeart size={14} />, label: "Wishlist", to: "/wishlist" },
+                  { icon: <FiShoppingCart size={14} />, label: "Cart", to: "/cart" },
+                  { icon: <FiGrid size={14} />, label: "Products", to: "/products" },
                 ].map(({ icon, label, to }) => (
-                  <Link key={label} to={to} style={{
-                    display: "flex", alignItems: "center", gap: 7,
-                    background: "rgba(255,255,255,0.1)",
-                    color: "#fff", fontSize: 13, fontWeight: 500,
-                    padding: "8px 16px", borderRadius: 20,
-                    textDecoration: "none", border: "1px solid rgba(255,255,255,0.15)",
-                    transition: "background 0.2s"
-                  }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                  >
+                  <Link key={label} to={to} className="flex items-center gap-1.5 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-full border border-white/15 hover:bg-white/20 transition-colors" style={{ background: "rgba(255,255,255,0.1)", textDecoration: "none" }}>
                     {icon} {label}
                   </Link>
                 ))}
@@ -123,7 +111,7 @@ export default function Home() {
 
           {/* Category Blocks Row 1 */}
           {categoryBlocks.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {categoryBlocks.slice(0, 4).map((block) => (
                 <CategoryBlock key={block.category} category={block.category} products={block.products} />
               ))}
@@ -147,48 +135,34 @@ export default function Home() {
 
           {/* ── LOGGED-IN: Personalized Picks ── */}
           {user && featured.length > 0 && (
-            <div style={{
-              background: "#fff",
-              borderRadius: 8,
-              padding: "20px",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-              border: "1px solid #e8e8e8"
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <FiTrendingUp size={20} color="#c45500" />
-                  <h2 style={{ fontSize: 21, fontWeight: 700, color: "#0f1111", margin: 0, letterSpacing: "-0.3px" }}>
+            <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-[#e8e8e8]">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <FiTrendingUp size={18} color="#c45500" />
+                  <h2 className="text-base sm:text-xl font-bold text-[#0f1111]" style={{ margin: 0, letterSpacing: "-0.3px" }}>
                     Recommended for {user.name?.split(" ")[0]}
                   </h2>
                 </div>
-                <Link to="/products" style={{ fontSize: 14, color: "#007185", textDecoration: "none", fontWeight: 500 }}>
-                  See all →
+                <Link to="/products" style={{ fontSize: 13, color: "#007185", textDecoration: "none", fontWeight: 500, flexShrink: 0 }}>
+                  See all
                 </Link>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
                 {featured.slice(0, 6).map((p) => (
                   <Link key={p._id} to={`/products/${p._id}`} style={{ textDecoration: "none", display: "block" }}>
-                    <div style={{
-                      background: "#f7f7f7", borderRadius: 8, height: 160,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      padding: 12, overflow: "hidden", border: "1px solid #efefef",
-                      transition: "border-color 0.2s, transform 0.2s"
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#007185"; e.currentTarget.style.transform = "scale(1.02)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#efefef"; e.currentTarget.style.transform = "scale(1)"; }}
-                    >
-                      <img src={p.image} alt={p.name} style={{ maxHeight: "85%", maxWidth: "85%", objectFit: "contain" }} />
+                    <div className="bg-[#f7f7f7] rounded-lg h-28 sm:h-40 flex items-center justify-center p-2 sm:p-3 border border-[#efefef] hover:border-[#007185] transition-colors">
+                      <img src={p.image} alt={p.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} style={{ maxHeight: "85%", maxWidth: "85%", objectFit: "contain" }} />
                     </div>
-                    <div style={{ marginTop: 8 }}>
-                      <p style={{ fontSize: 12, color: "#0f1111", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                        <FiStar size={12} fill="#de7921" color="#de7921" />
-                        <span style={{ fontSize: 12, color: "#565959" }}>{p.ratings}</span>
+                    <div style={{ marginTop: 6 }}>
+                      <p className="text-xs text-[#0f1111] font-semibold truncate">{p.name}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+                        <FiStar size={11} fill="#de7921" color="#de7921" />
+                        <span style={{ fontSize: 11, color: "#565959" }}>{p.ratings}</span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginTop: 3 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#0f1111" }}>₹{p.price?.toLocaleString()}</span>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 2 }}>
+                        <span className="text-sm font-bold text-[#0f1111]">₹{p.price?.toLocaleString()}</span>
                         {p.discount > 0 && (
-                          <span style={{ fontSize: 11, color: "#cc0c39", fontWeight: 600 }}>{p.discount}% off</span>
+                          <span className="text-[10px] text-[#cc0c39] font-semibold">{p.discount}% off</span>
                         )}
                       </div>
                     </div>
@@ -215,7 +189,7 @@ export default function Home() {
 
           {/* Category Blocks Row 2 */}
           {categoryBlocks.length > 4 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {categoryBlocks.slice(4, 8).map((block) => (
                 <CategoryBlock key={block.category} category={block.category} products={block.products} />
               ))}
@@ -233,32 +207,19 @@ export default function Home() {
 
           {/* ── LOGGED-IN: Account Quick Links ── */}
           {user ? (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 12
-            }}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
-                { icon: <FiPackage size={28} />, title: "Your Orders", desc: "Track, return or buy things again", to: "/orders", color: "#007185" },
-                { icon: <FiHeart size={28} />, title: "Your Wishlist", desc: "Items you've saved for later", to: "/wishlist", color: "#cc0c39" },
-                { icon: <FiUser size={28} />, title: "Your Account", desc: "Manage your ShopEase account", to: "/orders", color: "#232f3e" },
-                { icon: <FiGrid size={28} />, title: "Browse Products", desc: "Explore all categories", to: "/products", color: "#f08804" },
+                { icon: <FiPackage size={24} />, title: "Your Orders", desc: "Track, return or buy things again", to: "/orders", color: "#007185" },
+                { icon: <FiHeart size={24} />, title: "Your Wishlist", desc: "Items you've saved for later", to: "/wishlist", color: "#cc0c39" },
+                { icon: <FiUser size={24} />, title: "Your Account", desc: "Manage your ShopEase account", to: "/orders", color: "#232f3e" },
+                { icon: <FiGrid size={24} />, title: "Browse Products", desc: "Explore all categories", to: "/products", color: "#f08804" },
               ].map(({ icon, title, desc, to, color }) => (
                 <Link key={title} to={to} style={{ textDecoration: "none" }}>
-                  <div style={{
-                    background: "#fff", borderRadius: 8, padding: "20px",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                    border: "1px solid #e8e8e8",
-                    display: "flex", alignItems: "flex-start", gap: 14,
-                    transition: "box-shadow 0.2s, transform 0.2s"
-                  }}
-                    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}
-                  >
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-[#e8e8e8] flex items-start gap-3 hover:shadow-md transition-shadow">
                     <div style={{ color, flexShrink: 0, marginTop: 2 }}>{icon}</div>
                     <div>
-                      <p style={{ fontSize: 15, fontWeight: 700, color: "#0f1111", margin: 0 }}>{title}</p>
-                      <p style={{ fontSize: 12, color: "#565959", margin: "4px 0 0" }}>{desc}</p>
+                      <p className="text-sm font-bold text-[#0f1111]">{title}</p>
+                      <p className="text-xs text-[#565959] mt-1 hidden sm:block">{desc}</p>
                     </div>
                   </div>
                 </Link>
@@ -266,11 +227,7 @@ export default function Home() {
             </div>
           ) : (
             /* ── GUEST: Sign-in Banner ── */
-            <div style={{
-              background: "linear-gradient(135deg, #fff 0%, #fefcf3 100%)",
-              borderRadius: 8, padding: "32px 24px", textAlign: "center",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid #e8e8e8"
-            }}>
+            <div className="bg-white rounded-lg p-6 sm:p-8 text-center shadow-sm border border-[#e8e8e8]">
               <p style={{ color: "#0f1111", fontSize: 15, margin: 0, fontWeight: 500 }}>
                 {t("personalizedRec")}
               </p>
@@ -308,35 +265,35 @@ export default function Home() {
             {t("backToTop")}
           </button>
         </div>
-        <div style={{ maxWidth: 1500, margin: "0 auto", padding: "48px 16px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 40 }}>
+        <div className="max-w-[1500px] mx-auto px-4 py-8 sm:py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-10">
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, marginTop: 0 }}>{t("getToKnow")}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, color: "#ddd" }}>
+              <h3 className="text-sm sm:text-base font-bold mb-3">{t("getToKnow")}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "#ddd" }}>
                 <span style={{ cursor: "pointer" }}>{t("aboutShopEase")}</span>
                 <span style={{ cursor: "pointer" }}>{t("careers")}</span>
                 <span style={{ cursor: "pointer" }}>{t("pressReleases")}</span>
               </div>
             </div>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, marginTop: 0 }}>{t("makeMoney")}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, color: "#ddd" }}>
+              <h3 className="text-sm sm:text-base font-bold mb-3">{t("makeMoney")}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "#ddd" }}>
                 <span style={{ cursor: "pointer" }}>{t("sellOnShopEase")}</span>
                 <span style={{ cursor: "pointer" }}>{t("becomeAffiliate")}</span>
                 <span style={{ cursor: "pointer" }}>{t("advertise")}</span>
               </div>
             </div>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, marginTop: 0 }}>{t("letUsHelp")}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, color: "#ddd" }}>
+              <h3 className="text-sm sm:text-base font-bold mb-3">{t("letUsHelp")}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "#ddd" }}>
                 <span style={{ cursor: "pointer" }}>{t("yourAccount")}</span>
                 <span style={{ cursor: "pointer" }}>{t("returnsCentre")}</span>
                 <span style={{ cursor: "pointer" }}>{t("help")}</span>
               </div>
             </div>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, marginTop: 0 }}>{t("connectWithUs")}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, color: "#ddd" }}>
+              <h3 className="text-sm sm:text-base font-bold mb-3">{t("connectWithUs")}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13, color: "#ddd" }}>
                 <span style={{ cursor: "pointer" }}>Facebook</span>
                 <span style={{ cursor: "pointer" }}>Twitter</span>
                 <span style={{ cursor: "pointer" }}>Instagram</span>
@@ -344,12 +301,12 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div style={{ borderTop: "1px solid #3a4553", padding: "24px 16px", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginBottom: 8 }}>
+        <div style={{ borderTop: "1px solid #3a4553", padding: "20px 16px", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginBottom: 6 }}>
             <span style={{ color: "#fff", fontSize: 18, fontWeight: 800 }}>Shop</span>
             <span style={{ color: "#f08804", fontSize: 18, fontWeight: 800 }}>Ease</span>
           </div>
-          <p style={{ fontSize: 13, color: "#999", margin: 0 }}>&copy; 2024 ShopEase. {t("allRightsReserved")}</p>
+          <p style={{ fontSize: 12, color: "#999", margin: 0 }}>&copy; 2024 ShopEase. {t("allRightsReserved")}</p>
         </div>
       </footer>
     </div>

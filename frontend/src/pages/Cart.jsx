@@ -37,7 +37,7 @@ export default function Cart() {
                 {items.map((item) => (
                   <div key={item.product?._id || item._id} className="flex gap-4 py-4">
                     <Link to={`/products/${item.product?._id}`} className="shrink-0">
-                      <img src={item.product?.image} alt={item.product?.name} className="w-[120px] h-[120px] sm:w-[180px] sm:h-[180px] object-contain bg-[#f7f7f7] rounded p-2" />
+                      <img src={item.product?.image} alt={item.product?.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} className="w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] object-contain bg-[#f7f7f7] rounded p-2" />
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link to={`/products/${item.product?._id}`} className="text-base sm:text-lg text-[#0f1111] hover:text-[#c45500] line-clamp-2">

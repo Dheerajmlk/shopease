@@ -10,7 +10,7 @@ export default function CategoryBlock({ category, products }) {
     <div style={{
       background: "#fff",
       borderRadius: 8,
-      padding: 20,
+      padding: "16px",
       boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
       display: "flex",
       flexDirection: "column",
@@ -21,8 +21,8 @@ export default function CategoryBlock({ category, products }) {
       onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"}
       onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)"}
     >
-      <h2 style={{ fontSize: 19, fontWeight: 700, color: "#0f1111", marginBottom: 14, marginTop: 0, letterSpacing: "-0.3px" }}>{category}</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <h2 style={{ fontSize: "clamp(16px, 4vw, 19px)", fontWeight: 700, color: "#0f1111", marginBottom: 12, marginTop: 0, letterSpacing: "-0.3px" }}>{category}</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {products.slice(0, 4).map((p) => (
           <Link key={p._id} to={`/products/${p._id}`} style={{ textDecoration: "none", display: "block", overflow: "hidden" }}>
             <div style={{
@@ -45,6 +45,8 @@ export default function CategoryBlock({ category, products }) {
               <img
                 src={p.image}
                 alt={p.name}
+                loading="lazy"
+                onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
                 style={{
                   width: "auto",
                   height: "auto",

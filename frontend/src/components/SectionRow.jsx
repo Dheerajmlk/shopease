@@ -22,8 +22,8 @@ export default function SectionRow({ title, products, link, linkText = "See all 
       boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
       border: "1px solid #e8e8e8"
     }}>
-      <div style={{ padding: "18px 20px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#0f1111", margin: 0, letterSpacing: "-0.3px" }}>{title}</h2>
+      <div style={{ padding: "14px 16px 10px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <h2 style={{ fontSize: "clamp(16px, 4vw, 21px)", fontWeight: 700, color: "#0f1111", margin: 0, letterSpacing: "-0.3px" }}>{title}</h2>
         {link && (
           <Link to={link} style={{ fontSize: 14, color: "#007185", textDecoration: "none", fontWeight: 500 }}>
             {linkText}
@@ -47,10 +47,10 @@ export default function SectionRow({ title, products, link, linkText = "See all 
         <div
           ref={scrollRef}
           className="scroll-container"
-          style={{ display: "flex", gap: 12, overflowX: "auto", padding: "6px 20px 20px", scrollSnapType: "x mandatory" }}
+          style={{ display: "flex", gap: 10, overflowX: "auto", padding: "6px 16px 16px", scrollSnapType: "x mandatory" }}
         >
           {products.map((p) => (
-            <div key={p._id} style={{ flexShrink: 0, width: 200, scrollSnapAlign: "start" }}>
+            <div key={p._id} style={{ flexShrink: 0, width: "clamp(150px, 40vw, 200px)", scrollSnapAlign: "start" }}>
               <ProductCard product={p} compact />
             </div>
           ))}

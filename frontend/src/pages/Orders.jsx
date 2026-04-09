@@ -165,7 +165,7 @@ export default function Orders() {
                             onClick={() => productId && navigate(`/products/${productId}`)}
                             className={`w-20 h-20 bg-[#f7f7f7] rounded p-1 flex-shrink-0 ${productId ? "cursor-pointer hover:opacity-75 transition-opacity" : ""}`}
                           >
-                            <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                            <img src={item.image} alt={item.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} className="w-full h-full object-contain" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p

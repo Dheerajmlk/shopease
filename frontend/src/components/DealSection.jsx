@@ -14,13 +14,13 @@ export default function DealSection({ title, products }) {
       boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
       border: "1px solid #e8e8e8"
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#0f1111", margin: 0, letterSpacing: "-0.3px" }}>{title}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 8 }}>
+        <h2 style={{ fontSize: "clamp(16px, 4vw, 21px)", fontWeight: 700, color: "#0f1111", margin: 0, letterSpacing: "-0.3px" }}>{title}</h2>
         <Link to="/products?sort=discount" style={{ fontSize: 14, color: "#007185", textDecoration: "none", fontWeight: 500 }}>
           {t("seeAllDeals")}
         </Link>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
         {products.slice(0, 4).map((p) => (
           <Link key={p._id} to={`/products/${p._id}`} className="group" style={{ textDecoration: "none" }}>
             <div style={{
@@ -28,7 +28,7 @@ export default function DealSection({ title, products }) {
               background: "#f7f7f7",
               borderRadius: 8,
               overflow: "hidden",
-              height: 180,
+              height: 160,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -42,6 +42,8 @@ export default function DealSection({ title, products }) {
               <img
                 src={p.image}
                 alt={p.name}
+                loading="lazy"
+                onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
                 style={{ width: "auto", height: "auto", maxHeight: "85%", maxWidth: "85%", objectFit: "contain", display: "block" }}
               />
               <span style={{

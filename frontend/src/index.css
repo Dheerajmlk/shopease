@@ -1,10 +1,16 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
   --font-main: 'Inter', system-ui, -apple-system, sans-serif;
   --font-hindi: 'Noto Sans Devanagari', 'Inter', sans-serif;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -110,4 +116,88 @@ p, span, a, button, input, select, textarea {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════
+   CAROUSEL RESPONSIVE STYLES
+   ═══════════════════════════════════════════════════ */
+
+.carousel-content {
+  padding: 0 48px;
+}
+
+.carousel-title {
+  font-size: clamp(20px, 4vw, 44px);
+}
+
+.carousel-subtitle {
+  font-size: clamp(12px, 1.8vw, 18px);
+}
+
+.carousel-cta {
+  padding: 10px 28px;
+  font-size: clamp(12px, 1.5vw, 15px);
+}
+
+.carousel-arrow {
+  width: 56px;
+}
+
+.carousel-arrow-icon {
+  width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 640px) {
+  .carousel-content {
+    padding: 0 16px;
+  }
+
+  .carousel-cta {
+    padding: 8px 20px;
+  }
+
+  .carousel-arrow {
+    width: 36px;
+  }
+
+  .carousel-arrow-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   ADMIN MOBILE STYLES
+   ═══════════════════════════════════════════════════ */
+
+/* Admin order cards - mobile friendly */
+@media (max-width: 640px) {
+  .admin-order-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .admin-order-meta {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  .admin-order-meta > div {
+    min-width: 45%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   LEAFLET MAP OVERRIDES
+   ═══════════════════════════════════════════════════ */
+
+.leaflet-container {
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* Image fallback styling */
+img[src=""] {
+  visibility: hidden;
 }

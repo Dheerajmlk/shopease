@@ -60,10 +60,12 @@ export default function ProductCard({ product, compact = false }) {
       )}
 
       {/* Image */}
-      <div className={`${compact ? 'h-32' : 'h-48 sm:h-56'} bg-[#f7f7f7] flex items-center justify-center overflow-hidden p-3`}>
+      <div className={`${compact ? 'h-32' : 'h-40 sm:h-56'} bg-[#f7f7f7] flex items-center justify-center overflow-hidden p-3`}>
         <img
           src={product.image}
           alt={product.name}
+          loading="lazy"
+          onError={(e) => { e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='%23f0f0f0'%3E%3Crect width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='14' fill='%23999' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E"; }}
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
         />
       </div>

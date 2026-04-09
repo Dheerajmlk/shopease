@@ -26,8 +26,10 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#0f1111] mb-4">Users ({users.length})</h1>
-      <div className="bg-white rounded-sm shadow-sm overflow-x-auto">
+      <h1 className="text-xl sm:text-2xl font-bold text-[#0f1111] mb-4">Users ({users.length})</h1>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block bg-white rounded-sm shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[#565959] border-b border-[#e7e7e7] bg-[#f0f2f2]">
@@ -62,6 +64,34 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="sm:hidden space-y-2">
+        {users.map((u) => (
+          <div key={u._id} className="bg-white rounded-sm shadow-sm p-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#232f3e] flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-sm">{u.name?.[0]?.toUpperCase()}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-[#0f1111] truncate">{u.name}</p>
+              <p className="text-xs text-[#565959] truncate">{u.email}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  u.role === "admin" ? "bg-[#232f3e] text-white" : "bg-[#f0f2f2] text-[#565959]"
+                }`}>
+                  {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                </span>
+                <span className="text-[10px] text-[#565959]">{new Date(u.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+            {u.role !== "admin" && (
+              <button onClick={() => handleDelete(u._id)} className="text-[#cc0c39] hover:text-red-700 p-2 shrink-0">
+                <FiTrash2 size={16} />
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

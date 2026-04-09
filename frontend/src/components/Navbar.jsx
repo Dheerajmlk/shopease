@@ -54,14 +54,14 @@ export default function Navbar() {
       {/* Main Header */}
       <nav style={{ background: "linear-gradient(180deg, #131921 0%, #1a2332 100%)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 1500, margin: "0 auto", padding: "0 8px" }}>
-          <div style={{ display: "flex", alignItems: "center", height: 64, gap: 8 }}>
+          <div className="flex items-center h-14 sm:h-16 gap-1 sm:gap-2">
             {/* Logo */}
-            <Link to="/" style={{ display: "flex", alignItems: "baseline", padding: "4px 8px", border: "1px solid transparent", borderRadius: 4, textDecoration: "none", flexShrink: 0 }}
+            <Link to="/" className="flex items-baseline px-1 sm:px-2 py-1 border border-transparent rounded no-underline shrink-0"
               onMouseEnter={(e) => e.currentTarget.style.borderColor = "#fff"}
               onMouseLeave={(e) => e.currentTarget.style.borderColor = "transparent"}>
-              <span style={{ color: "#fff", fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Inter', sans-serif" }}>Shop</span>
-              <span style={{ color: "#f08804", fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Inter', sans-serif" }}>Ease</span>
-              <span style={{ color: "#f08804", fontSize: 10, marginTop: -8, marginLeft: 2 }}>.in</span>
+              <span className="text-white text-lg sm:text-2xl font-extrabold tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>Shop</span>
+              <span className="text-[#f08804] text-lg sm:text-2xl font-extrabold tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>Ease</span>
+              <span className="text-[#f08804] text-[8px] sm:text-[10px] -mt-2 ml-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>.in</span>
             </Link>
 
             {/* Delivery Location → /address */}
@@ -77,16 +77,16 @@ export default function Navbar() {
             </Link>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} style={{ flex: 1, display: "flex", height: 42, minWidth: 0, borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+            <form onSubmit={handleSearch} className="flex-1 flex h-9 sm:h-[42px] min-w-0 rounded-lg overflow-hidden shadow-sm" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1, minWidth: 0, padding: "0 14px", fontSize: 15, border: "none", outline: "none", background: "#fff", fontFamily: "'Inter', sans-serif" }}
+                className="flex-1 min-w-0 px-2 sm:px-[14px] text-sm sm:text-[15px] border-none outline-none bg-white font-sans"
               />
-              <button type="submit" style={{ background: "linear-gradient(180deg, #f7dfa5 0%, #f0c14b 100%)", padding: "0 14px", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FiSearch size={20} style={{ color: "#131921" }} />
+              <button type="submit" className="px-2 sm:px-[14px] border-none cursor-pointer flex items-center justify-center transition-opacity hover:opacity-90" style={{ background: "linear-gradient(180deg, #f7dfa5 0%, #f0c14b 100%)" }}>
+                <FiSearch className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-[#131921]" />
               </button>
             </form>
 

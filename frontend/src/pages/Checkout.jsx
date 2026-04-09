@@ -1,20 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
 import toast from "react-hot-toast";
-import { FiLock, FiShield } from "react-icons/fi";
+import { FiLock, FiShield, FiMapPin } from "react-icons/fi";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import L from "leaflet";
+
+const markerIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+function RecenterMap({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.flyTo(position, 15, { duration: 1 });
+  }, [position, map]);
+  return null;
+}
 
 // Dynamically inject the Razorpay script and wait until window.Razorpay is ready.
-// This is more reliable than <script defer> which can race with React mounting.
 function loadRazorpayScript() {
   return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);          // already loaded
+    if (window.Razorpay) return resolve(true);
 
     const existing = document.getElementById("razorpay-sdk");
     if (existing) {
-      // Script tag exists but window.Razorpay not yet set — wait for it
       existing.addEventListener("load", () => resolve(!!window.Razorpay));
       existing.addEventListener("error", () => resolve(false));
       return;
@@ -35,22 +53,48 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState({ street: "", city: "", state: "", zip: "" });
+  const [mapPosition, setMapPosition] = useState(null);
+  const debounceRef = useRef(null);
 
   const items = cart.items || [];
 
-  // Navigate inside useEffect to avoid React render-cycle warning
   useEffect(() => {
     if (items.length === 0) navigate("/cart");
   }, [items.length, navigate]);
 
+  // Geocode address
+  const geocodeAddress = useCallback(async (query) => {
+    if (!query || query.trim().length < 5) return;
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        setMapPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, []);
+
+  const handleFieldChange = (field, value) => {
+    const newAddr = { ...address, [field]: value };
+    setAddress(newAddr);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const full = `${newAddr.street}, ${newAddr.city}, ${newAddr.state} ${newAddr.zip}`;
+      if (newAddr.city && newAddr.state) geocodeAddress(full);
+    }, 800);
+  };
+
   const handlePay = async () => {
-    // ── Guard: address ────────────────────────────────────────────────
     if (!address.street || !address.city || !address.state || !address.zip) {
       toast.error("Please fill all address fields");
       return;
     }
 
-    // ── Guard: cart total ─────────────────────────────────────────────
     if (!cartTotal || cartTotal <= 0) {
       toast.error("Cart total is ₹0 — please add items and try again.");
       return;
@@ -58,7 +102,6 @@ export default function Checkout() {
 
     setLoading(true);
 
-    // ── Step 1: Load Razorpay SDK on demand ───────────────────────────
     const sdkReady = await loadRazorpayScript();
     if (!sdkReady) {
       toast.error("Could not load payment gateway. Check your internet and try again.");
@@ -67,7 +110,6 @@ export default function Checkout() {
     }
 
     try {
-      // ── Step 2: Get publishable key from backend ──────────────────────
       const { data: keyData } = await api.get("/payment/razorpay-key");
       const razorpayKey = keyData?.key;
       if (!razorpayKey) {
@@ -76,7 +118,6 @@ export default function Checkout() {
         return;
       }
 
-      // ── Step 3: Create Razorpay order on backend ──────────────────────
       const { data: rzOrder } = await api.post("/payment/create-order", { amount: cartTotal });
       if (!rzOrder?.id || !rzOrder?.amount) {
         toast.error("Could not create payment order. Please try again.");
@@ -84,7 +125,6 @@ export default function Checkout() {
         return;
       }
 
-      // ── Step 4: Open Razorpay modal ───────────────────────────────────
       const options = {
         key:         razorpayKey,
         amount:      rzOrder.amount,
@@ -93,38 +133,26 @@ export default function Checkout() {
         description: "Order Payment",
         order_id:    rzOrder.id,
 
-        // Called when Razorpay reports payment as successful
         handler: async (response) => {
           const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = response;
-
           try {
-            // ── Verify signature ─────────────────────────────────────
             await api.post("/payment/verify", {
               razorpay_order_id,
               razorpay_payment_id,
               razorpay_signature,
             });
-
-            // ── Create order in DB ────────────────────────────────────
             await api.post("/orders", {
               shippingAddress:  address,
               paymentId:        razorpay_payment_id,
               razorpayOrderId:  razorpay_order_id,
             });
-
             await clearCart();
-            toast.success("Order placed successfully! 🎉");
+            toast.success("Order placed successfully!");
             navigate("/orders");
-
           } catch (err) {
             const serverMsg = err.response?.data?.message;
-
             if (err.response?.status === 400 && serverMsg?.includes("verification")) {
-              // Signature mismatch — payment went through on Razorpay but our key is wrong
-              toast.error(
-                `Payment received (ID: ${razorpay_payment_id}) but verification failed. ` +
-                `Please contact support with this ID.`
-              );
+              toast.error(`Payment received (ID: ${razorpay_payment_id}) but verification failed. Please contact support with this ID.`);
             } else if (err.response?.status === 400 && serverMsg?.includes("Cart")) {
               toast.error("Cart issue after payment. Contact support with payment ID: " + razorpay_payment_id);
             } else {
@@ -146,18 +174,14 @@ export default function Checkout() {
       };
 
       const rzp = new window.Razorpay(options);
-
       rzp.on("payment.failed", (resp) => {
         const e = resp.error;
-        console.error("Razorpay payment.failed →", e);
         toast.error(e?.description || e?.reason || "Payment failed — please try a different method.");
         setLoading(false);
       });
-
       rzp.open();
 
     } catch (err) {
-      // Network / server error before Razorpay modal even opened
       const msg = err.response?.data?.message || err.message || "Unexpected error. Please try again.";
       toast.error(msg);
       setLoading(false);
@@ -170,54 +194,77 @@ export default function Checkout() {
     <div className="bg-[#e3e6e6] min-h-screen">
       {/* Header */}
       <div className="bg-gradient-to-b from-[#f0f2f2] to-[#e3e6e6] border-b border-[#bbb] py-3">
-        <div className="max-w-[1000px] mx-auto px-4 flex items-center justify-between">
-          <h1 className="text-2xl font-medium text-[#0f1111]">
+        <div className="max-w-[1000px] mx-auto px-3 sm:px-4 flex items-center justify-between">
+          <h1 className="text-lg sm:text-2xl font-medium text-[#0f1111]">
             Checkout (<span className="text-[#007185]">{items.reduce((s, i) => s + i.quantity, 0)} items</span>)
           </h1>
-          <div className="flex items-center gap-1 text-[#565959] text-sm">
+          <div className="flex items-center gap-1 text-[#565959] text-xs sm:text-sm">
             <FiLock size={14} />
-            <span>Secure checkout</span>
+            <span>Secure</span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1000px] mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <div className="max-w-[1000px] mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Left — Address & Items */}
           <div className="flex-1 space-y-4">
             {/* Shipping Address */}
-            <div className="bg-white rounded-sm shadow-sm p-5">
-              <h2 className="text-lg font-bold text-[#0f1111] mb-4 pb-2 border-b border-[#e7e7e7]">
+            <div className="bg-white rounded-sm shadow-sm p-4 sm:p-5">
+              <h2 className="text-base sm:text-lg font-bold text-[#0f1111] mb-3 sm:mb-4 pb-2 border-b border-[#e7e7e7]">
                 1. Delivery Address
               </h2>
               <div className="space-y-3">
                 <input type="text" placeholder="Street Address" value={address.street}
-                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                  onChange={(e) => handleFieldChange("street", e.target.value)}
                   className="w-full px-3 py-2.5 border border-[#888c8c] rounded focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                 <input type="text" placeholder="City" value={address.city}
-                  onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                  onChange={(e) => handleFieldChange("city", e.target.value)}
                   className="w-full px-3 py-2.5 border border-[#888c8c] rounded focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                 <div className="grid grid-cols-2 gap-3">
                   <input type="text" placeholder="State" value={address.state}
-                    onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                    onChange={(e) => handleFieldChange("state", e.target.value)}
                     className="w-full px-3 py-2.5 border border-[#888c8c] rounded focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                   <input type="text" placeholder="PIN Code" value={address.zip}
-                    onChange={(e) => setAddress({ ...address, zip: e.target.value })}
+                    onChange={(e) => handleFieldChange("zip", e.target.value)}
                     className="w-full px-3 py-2.5 border border-[#888c8c] rounded focus:ring-2 focus:ring-[#007185] outline-none text-sm" />
                 </div>
+
+                {/* Map Preview */}
+                {(mapPosition || (address.city && address.state)) && (
+                  <div>
+                    <p className="text-xs font-semibold text-[#565959] uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                      <FiMapPin size={11} /> Delivery Location
+                    </p>
+                    <div className="rounded-lg overflow-hidden border border-[#d5d9d9]" style={{ height: 180 }}>
+                      {mapPosition ? (
+                        <MapContainer center={mapPosition} zoom={15} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }} attributionControl={false}>
+                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                          <Marker position={mapPosition} icon={markerIcon} />
+                          <RecenterMap position={mapPosition} />
+                        </MapContainer>
+                      ) : (
+                        <div className="h-full bg-[#f7f7f7] flex items-center justify-center">
+                          <p className="text-xs text-[#565959] animate-pulse">Locating address...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Order Items */}
-            <div className="bg-white rounded-sm shadow-sm p-5">
-              <h2 className="text-lg font-bold text-[#0f1111] mb-4 pb-2 border-b border-[#e7e7e7]">
+            <div className="bg-white rounded-sm shadow-sm p-4 sm:p-5">
+              <h2 className="text-base sm:text-lg font-bold text-[#0f1111] mb-3 sm:mb-4 pb-2 border-b border-[#e7e7e7]">
                 2. Review Items
               </h2>
               <div className="divide-y divide-[#e7e7e7]">
                 {items.map((item) => (
                   <div key={item.product?._id} className="flex gap-3 py-3">
-                    <img src={item.product?.image} alt={item.product?.name}
-                      className="w-16 h-16 object-contain bg-[#f7f7f7] rounded p-1" />
+                    <img src={item.product?.image} alt={item.product?.name} loading="lazy"
+                      onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
+                      className="w-14 h-14 sm:w-16 sm:h-16 object-contain bg-[#f7f7f7] rounded p-1 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-[#0f1111] line-clamp-1">{item.product?.name}</p>
                       <p className="text-sm font-bold text-[#0f1111]">₹{item.product?.price?.toLocaleString()}</p>
@@ -234,7 +281,7 @@ export default function Checkout() {
 
           {/* Right — Order Summary */}
           <div className="w-full lg:w-[300px] shrink-0">
-            <div className="bg-white rounded-sm shadow-sm p-5 sticky top-[100px]">
+            <div className="bg-white rounded-sm shadow-sm p-4 sm:p-5 sticky top-[100px]">
               <button onClick={handlePay} disabled={loading}
                 className="w-full bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] py-2.5 rounded-full font-medium text-sm mb-4 disabled:opacity-50 border border-[#fcd200] shadow-sm">
                 {loading ? "Processing..." : "Place your order"}
@@ -257,12 +304,12 @@ export default function Checkout() {
               </div>
 
               <div className="flex justify-between items-center border-t border-[#e7e7e7] mt-3 pt-3">
-                <span className="text-lg font-bold text-[#cc0c39]">Order Total:</span>
-                <span className="text-lg font-bold text-[#cc0c39]">₹{cartTotal.toLocaleString()}</span>
+                <span className="text-base sm:text-lg font-bold text-[#cc0c39]">Order Total:</span>
+                <span className="text-base sm:text-lg font-bold text-[#cc0c39]">₹{cartTotal.toLocaleString()}</span>
               </div>
 
               <div className="mt-3 p-3 bg-[#f0f9ff] rounded text-xs text-[#565959] border border-[#bde0f5]">
-                <p className="font-bold text-[#0f1111] mb-1">🧪 Test Payment Details</p>
+                <p className="font-bold text-[#0f1111] mb-1">Test Payment Details</p>
                 <p>Card: <span className="font-mono font-bold">4111 1111 1111 1111</span></p>
                 <p>Expiry: <span className="font-mono">12/26</span> &nbsp; CVV: <span className="font-mono">123</span></p>
                 <p>OTP: <span className="font-mono font-bold">1234</span></p>

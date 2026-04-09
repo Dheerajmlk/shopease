@@ -65,8 +65,8 @@ export default function ProductDetail() {
         <div className="bg-white rounded-sm shadow-sm p-4 sm:p-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-[1fr_1fr_300px] gap-6 lg:gap-10">
             {/* Image */}
-            <div className="flex items-center justify-center bg-[#f7f7f7] rounded-lg p-6 aspect-square sticky top-[120px]">
-              <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" />
+            <div className="flex items-center justify-center bg-[#f7f7f7] rounded-lg p-4 sm:p-6 aspect-square sm:sticky sm:top-[120px]">
+              <img src={product.image} alt={product.name} loading="lazy" onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }} className="max-h-full max-w-full object-contain" />
             </div>
 
             {/* Details */}
